@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watchlist</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+nav a { margin-right: 10px; }
+.card { background: white; padding: 10px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 0 4px #ccc; display: flex; justify-content: space-between; align-items: center; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Nézendők listája</h1>
+
+<nav>
+  <a href="index.html">Filmek</a> |
+  <a href="login.html" id="loginLink">Bejelentkezés</a> |
+  <a href="register.html">Regisztráció</a>
+</nav>
+
+<div id="wl"></div>
+
+<script>
+async function checkLogin() {
+  const res = await fetch("/api/check");
+  if (!res.ok) {
+    window.location.href = "login.html";
+    return false;
+  }
+  return true;
+}
+
+async function setupNav() {
+  const loginLink = document.getElementById("loginLink");
+  const loggedIn = await checkLogin();
+  if (loggedIn) {
+    loginLink.textContent = "Kijelentkezés";
+    loginLink.onclick = async () => {
+      await fetch("/api/logout", { method: "POST" });
+      window.location.href = "login.html";
+    };
+  }
+}
+
+async function loadWatchlist() {
+  await checkLogin();
+  const res = await fetch("/api/watchlist");
+  const list = await res.json();
+  const div = document.getElementById("wl");
+  div.innerHTML = list.map(m => `
+    <div class="card">
+      <div><b>${m.title}</b> (${m.year})</div>
+      <button onclick="del(${m.id})">Törlés</button>
+    </div>
+  `).join("");
+}
+
+function del(id) {
+  fetch(`/api/watchlist/${id}`, { method: "DELETE" })
+    .then(r => {
+      if (r.ok) {
+        alert("Film törölve!");
+        loadWatchlist();
+      } else {
+        alert("Hiba törlés közben");
+      }
+    });
+}
+
+setupNav().then(loadWatchlist);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regisztráció</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+nav a { margin-right: 10px; }
+form { background: white; padding: 20px; width: 250px; border-radius: 6px; box-shadow: 0 0 4px #ccc; }
+input { width: 100%; padding: 8px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Regisztráció</h2>
+
+<nav>
+  <a href="index.html">Filmek</a> |
+  <a href="watchlist.html">Watchlist</a> |
+  <a href="login.html">Bejelentkezés</a>
+</nav>
+
+<form id="regForm">
+  <input name="email" placeholder="Email">
+  <input name="password" type="password" placeholder="Jelszó">
+  <button type="submit">Regisztráció</button>
+</form>
+
+<script>
+document.getElementById("regForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = e.target.email.value;
+  const password = e.target.password.value;
+
+  const res = await fetch("/api/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    alert("Sikeres regisztráció!");
+    window.location.href = "login.html";
+  } else {
+    alert(data.error || "Hiba történt");
+  }
+});
+</script>
+
+</body>
+</html>

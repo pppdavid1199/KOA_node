@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filmek</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+nav a { margin-right: 10px; }
+.card { background: white; padding: 10px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 0 4px #ccc; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Filmek</h1>
+
+<nav>
+  <a href="watchlist.html">Saját watchlist</a> |
+  <a href="login.html" id="loginLink">Bejelentkezés</a> |
+  <a href="register.html">Regisztráció</a>
+</nav>
+
+<div id="movies"></div>
+
+<script>
+fetch("/api/check")
+  .then(r => r.json())
+  .then(data => {
+    const loginLink = document.getElementById("loginLink");
+    if (data.loggedIn) {
+      loginLink.textContent = "Kijelentkezés";
+      loginLink.onclick = async () => {
+        await fetch("/api/logout", { method: "POST" });
+        window.location.href = "login.html";
+      };
+    }
+  });
+
+fetch("/api/movies")
+  .then(r => r.json())
+  .then(list => {
+    const div = document.getElementById("movies");
+    div.innerHTML = list.map(m => `
+      <div class="card">
+        <b>${m.title}</b> (${m.year}) – ${m.genre}
+        <br><br>
+        <button onclick="add(${m.id})">Hozzáadás a watchlisthez</button>
+      </div>
+    `).join("");
+  });
+
+async function add(id) {
+  const check = await fetch("/api/check");
+  if (!check.ok) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  fetch("/api/watchlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ movie_id: id })
+  })
+  .then(r => {
+    if (r.ok) alert("Hozzáadva!");
+  });
+}
+</script>
+
+</body>
+</html>
